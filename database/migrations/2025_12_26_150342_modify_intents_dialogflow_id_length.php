@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('intents', function (Blueprint $table) {
+            $table->dropUnique(['dialogflow_id']);
+        });
+        
+        Schema::table('intents', function (Blueprint $table) {
+            $table->string('dialogflow_id', 512)->nullable()->unique()->change();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('intents', function (Blueprint $table) {
+            $table->dropUnique(['dialogflow_id']);
+        });
+        
+        Schema::table('intents', function (Blueprint $table) {
+            $table->string('dialogflow_id')->nullable()->unique()->change();
+        });
+    }
+};
