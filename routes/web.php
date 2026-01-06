@@ -12,6 +12,7 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\IntentController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UnansweredQuestionController;
+use App\Http\Controllers\QuickResponseController;
 
 // Public routes
 Route::get('/', function () {
@@ -26,6 +27,9 @@ Route::get('/chatbot/check-user', [ChatbotController::class, 'checkUser'])->name
 Route::get('/chatbot/welcome', [ChatbotController::class, 'welcome'])->name('chatbot.welcome');
 Route::post('/chatbot/send', [ChatbotController::class, 'send'])->name('chatbot.send');
 Route::post('/chatbot/review', [ChatbotController::class, 'submitReview'])->name('chatbot.review');
+
+// API untuk quick responses
+Route::get('/api/quick-responses', [QuickResponseController::class, 'getQuickResponses'])->name('api.quick-responses');
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -49,5 +53,8 @@ Route::middleware(['web'])->group(function () {
     Route::resource('intents', IntentController::class);
     Route::post('intents/{intent}/sync', [IntentController::class, 'sync'])->name('intents.sync');
     Route::post('intents-import', [IntentController::class, 'import'])->name('intents.import');
+    
+    // Quick Response routes
+    Route::resource('quick-responses', QuickResponseController::class);
 });
 
