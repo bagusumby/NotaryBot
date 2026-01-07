@@ -7,6 +7,7 @@
     <title>@yield('title', 'Dashboard - Notary Services')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    @stack('styles')
 </head>
 
 <body>
@@ -20,8 +21,8 @@
                 </div>
                 <div class="bg-blue-50 p-3 rounded-lg">
                     <p class="text-sm text-gray-600">Logged in as</p>
-                    <p class="text-gray-900">{{ session('user.name', 'Admin') }}</p>
-                    <p class="text-xs text-blue-600 uppercase mt-1">{{ session('user.role', 'staff') }}</p>
+                    <p class="text-gray-900">{{ auth()->user()->name ?? 'Guest' }}</p>
+                    <p class="text-xs text-blue-600 uppercase mt-1">{{ auth()->user()->role ?? 'guest' }}</p>
                 </div>
             </div>
 
@@ -42,8 +43,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('appointments') }}"
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('appointments') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                        <a href="{{ route('employee-schedules.index') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('employee-schedules.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <i class="fas fa-user-clock w-5 h-5"></i>
+                            <span>Jadwal Staff</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('appointments.index') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('appointments.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-calendar-check w-5 h-5"></i>
                             <span>Appointments</span>
                         </a>
@@ -52,7 +60,14 @@
                         <a href="{{ route('reports') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('reports') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-file-alt w-5 h-5"></i>
-                            <span>Reports</span>
+                            <span>Chatbot Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('reports.appointments') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('reports.appointments') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <i class="fas fa-chart-bar w-5 h-5"></i>
+                            <span>Appointment Reports</span>
                         </a>
                     </li>
                     <li>
@@ -69,10 +84,10 @@
                             <span>Unanswered Questions</span>
                         </a>
                     </li>
-                    @if (session('user.role') === 'superadmin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
                         <li>
-                            <a href="{{ route('user-management') }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('user-management') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <a href="{{ route('users.index') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-users w-5 h-5"></i>
                                 <span>User Management</span>
                             </a>
@@ -82,6 +97,13 @@
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('bot-training') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-robot w-5 h-5"></i>
                                 <span>Bot Training</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('settings.edit') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                <i class="fas fa-cog w-5 h-5"></i>
+                                <span>System Settings</span>
                             </a>
                         </li>
                     @endif
@@ -117,8 +139,8 @@
                 </div>
                 <div class="bg-blue-50 p-3 rounded-lg">
                     <p class="text-sm text-gray-600">Logged in as</p>
-                    <p class="text-gray-900">{{ session('user.name', 'Admin') }}</p>
-                    <p class="text-xs text-blue-600 uppercase mt-1">{{ session('user.role', 'staff') }}</p>
+                    <p class="text-gray-900">{{ auth()->user()->name ?? 'Guest' }}</p>
+                    <p class="text-xs text-blue-600 uppercase mt-1">{{ auth()->user()->role ?? 'guest' }}</p>
                 </div>
             </div>
 
@@ -139,8 +161,15 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('appointments') }}"
-                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('appointments') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                        <a href="{{ route('employee-schedules.index') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('employee-schedules.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <i class="fas fa-user-clock w-5 h-5"></i>
+                            <span>Jadwal Staff</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('appointments.index') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('appointments.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-calendar-check w-5 h-5"></i>
                             <span>Appointments</span>
                         </a>
@@ -149,7 +178,14 @@
                         <a href="{{ route('reports') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('reports') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                             <i class="fas fa-file-alt w-5 h-5"></i>
-                            <span>Reports</span>
+                            <span>Chatbot Reports</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('reports.appointments') }}"
+                            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('reports.appointments') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <i class="fas fa-chart-bar w-5 h-5"></i>
+                            <span>Appointment Reports</span>
                         </a>
                     </li>
                     <li>
@@ -166,10 +202,10 @@
                             <span>Unanswered Questions</span>
                         </a>
                     </li>
-                    @if (session('user.role') === 'superadmin')
+                    @if (auth()->check() && auth()->user()->isAdmin())
                         <li>
-                            <a href="{{ route('user-management') }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('user-management') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                            <a href="{{ route('users.index') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('users.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-users w-5 h-5"></i>
                                 <span>User Management</span>
                             </a>
@@ -181,12 +217,19 @@
                                 <span>Bot Training</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('settings.edit') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                <i class="fas fa-cog w-5 h-5"></i>
+                                <span>System Settings</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </nav>
 
             <div class="p-4 border-t border-gray-200">
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" onclick="toggleMobileSidebar()">
                     @csrf
                     <button type="submit"
                         class="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors">

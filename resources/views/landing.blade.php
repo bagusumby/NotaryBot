@@ -407,10 +407,91 @@
                         } else if (item.type === 'review-buttons') {
                             console.log('Restoring review buttons'); // Debug log
                             showReviewButtons();
+                        } else if (item.type === 'payload') {
+                            try {
+                                const payloadData = JSON.parse(item.message);
+                                handlePayload(payloadData);
+                            } catch (e) {
+                                console.error('Error parsing payload:', e);
+                            }
                         }
                     });
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
+            }
+
+            function handlePayload(data) {
+                console.log('Handling payload:', data); // Debug log
+
+                // Dialogflow rich content structure
+                if (data.richContent && Array.isArray(data.richContent)) {
+                    data.richContent.forEach(contentArray => {
+                        if (Array.isArray(contentArray)) {
+                            contentArray.forEach(item => {
+                                if (item.type === 'chips' && item.options) {
+                                    addChips(item.options);
+                                } else if (item.type === 'info') {
+                                    if (item.title) addBotMessage(item.title);
+                                    if (item.subtitle) addBotMessage(item.subtitle);
+                                } else if (item.type === 'button') {
+                                    addActionButton(item);
+                                } else if (item.type === 'description') {
+                                    addBotMessage(item.text || '');
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Save payload to localStorage
+                saveChatHistory(JSON.stringify(data), 'bot', 'payload');
+            }
+
+            function addChips(options) {
+                const messagesContainer = document.getElementById('chat-messages');
+                const chipsContainer = document.createElement('div');
+                chipsContainer.className = 'flex flex-wrap gap-2 mb-3 animate-fade-in';
+
+                options.forEach(option => {
+                    const chip = document.createElement('button');
+                    chip.className =
+                        'px-4 py-2 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors text-sm font-medium shadow-sm hover:shadow';
+                    chip.textContent = option.text;
+                    chip.onclick = () => {
+                        document.getElementById('chat-input').value = option.text;
+                        sendMessage();
+                    };
+                    chipsContainer.appendChild(chip);
+                });
+
+                messagesContainer.appendChild(chipsContainer);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            function addActionButton(button) {
+                const messagesContainer = document.getElementById('chat-messages');
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'mb-3 animate-fade-in';
+
+                const btn = document.createElement('a');
+                btn.className =
+                    'inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg';
+                btn.textContent = button.text || button.title;
+
+                if (button.link) {
+                    btn.href = button.link;
+                    btn.target = '_blank';
+                } else if (button.event) {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        document.getElementById('chat-input').value = button.event.name || button.text;
+                        sendMessage();
+                    };
+                }
+
+                buttonContainer.appendChild(btn);
+                messagesContainer.appendChild(buttonContainer);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
 
             function loadWelcomeMessage() {
@@ -428,6 +509,8 @@
                                     addQuickReplies(msg.replies);
                                 } else if (msg.type === 'card') {
                                     addCard(msg);
+                                } else if (msg.type === 'payload' && msg.data) {
+                                    handlePayload(msg.data);
                                 }
                             });
                         }
@@ -646,6 +729,8 @@
                                     addQuickReplies(msg.replies);
                                 } else if (msg.type === 'card') {
                                     addCard(msg);
+                                } else if (msg.type === 'payload' && msg.data) {
+                                    handlePayload(msg.data);
                                 }
                             });
                             // Start inactivity timer after welcome message
@@ -735,6 +820,8 @@
                                     addQuickReplies(msg.replies);
                                 } else if (msg.type === 'card') {
                                     addCard(msg);
+                                } else if (msg.type === 'payload' && msg.data) {
+                                    handlePayload(msg.data);
                                 }
                             });
                         } else if (data.reply) {

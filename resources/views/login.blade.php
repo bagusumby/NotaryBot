@@ -23,16 +23,19 @@
                     </div>
                 @endif
 
-                <form action="{{ route('login.submit') }}" method="POST" class="space-y-6">
+                <form action="{{ route('login') }}" method="POST" class="space-y-6">
                     @csrf
                     <div>
                         <label class="block text-gray-700 mb-2">Email</label>
                         <div class="relative">
                             <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
                             <input type="email" name="email" value="{{ old('email') }}"
-                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 @error('email') border-red-500 @enderror"
                                 placeholder="Enter your email" required />
                         </div>
+                        @error('email')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
@@ -40,9 +43,20 @@
                         <div class="relative">
                             <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
                             <input type="password" name="password"
-                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 @error('password') border-red-500 @enderror"
                                 placeholder="Enter your password" required />
                         </div>
+                        @error('password')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember"
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="remember" class="ml-2 text-gray-700 text-sm">
+                            Remember me
+                        </label>
                     </div>
 
                     <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
@@ -54,24 +68,34 @@
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <p class="text-gray-600 text-center mb-4">Demo Accounts:</p>
                     <div class="space-y-2">
-                        <form action="{{ route('login.submit') }}" method="POST">
+                        <form action="{{ route('login') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="email" value="admin@notary.com">
-                            <input type="hidden" name="password" value="admin123">
+                            <input type="hidden" name="email" value="superadmin@notarybot.com">
+                            <input type="hidden" name="password" value="password123">
                             <button type="submit"
                                 class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 text-sm">
                                 <span>Superadmin</span>
-                                <span class="text-gray-500"> - admin@notary.com</span>
+                                <span class="text-gray-500"> - superadmin@notarybot.com</span>
                             </button>
                         </form>
-                        <form action="{{ route('login.submit') }}" method="POST">
+                        <form action="{{ route('login') }}" method="POST">
                             @csrf
-                            <input type="hidden" name="email" value="staff@notary.com">
-                            <input type="hidden" name="password" value="staff123">
+                            <input type="hidden" name="email" value="admin@notarybot.com">
+                            <input type="hidden" name="password" value="password123">
+                            <button type="submit"
+                                class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 text-sm">
+                                <span>Admin</span>
+                                <span class="text-gray-500"> - admin@notarybot.com</span>
+                            </button>
+                        </form>
+                        <form action="{{ route('login') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="email" value="staff@notarybot.com">
+                            <input type="hidden" name="password" value="password123">
                             <button type="submit"
                                 class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 text-sm">
                                 <span>Staff</span>
-                                <span class="text-gray-500"> - staff@notary.com</span>
+                                <span class="text-gray-500"> - staff@notarybot.com</span>
                             </button>
                         </form>
                     </div>
