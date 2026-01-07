@@ -44,13 +44,12 @@ class QuickResponseController extends Controller
                 'title' => 'required|string|max:255',
                 'value' => 'required|string|max:255',
                 'type' => 'required|in:welcome,general',
-                'order' => 'required|integer|min:0',
-                'is_active' => 'nullable|boolean'
+                'order' => 'required|integer|min:0'
             ]);
 
             \Log::info('QuickResponse Store: Validation passed', $validated);
 
-            // Set is_active based on checkbox presence
+            // Set is_active based on checkbox presence (checkbox sends "on" when checked, nothing when unchecked)
             $validated['is_active'] = $request->has('is_active') ? true : false;
 
             $quickResponse = QuickResponse::create($validated);
@@ -102,11 +101,10 @@ class QuickResponseController extends Controller
                 'title' => 'required|string|max:255',
                 'value' => 'required|string|max:255',
                 'type' => 'required|in:welcome,general',
-                'order' => 'required|integer|min:0',
-                'is_active' => 'nullable|boolean'
+                'order' => 'required|integer|min:0'
             ]);
 
-            // Set is_active based on checkbox presence
+            // Set is_active based on checkbox presence (checkbox sends "on" when checked, nothing when unchecked)
             $validated['is_active'] = $request->has('is_active') ? true : false;
 
             $quickResponse->update($validated);
