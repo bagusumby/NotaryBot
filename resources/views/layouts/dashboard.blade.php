@@ -106,6 +106,13 @@
                                 <span>Quick Response</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="{{ route('settings.edit') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                <i class="fas fa-cog w-5 h-5"></i>
+                                <span>System Settings</span>
+                            </a>
+                        </li>
                     @endif
                 </ul>
             </nav>
@@ -218,17 +225,18 @@
                             </a>
                         </li>
                         <li>
-                            <<<<<<< HEAD <a href="{{ route('settings.edit') }}"
+                            <a href="{{ route('settings.edit') }}"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-cog w-5 h-5"></i>
                                 <span>System Settings</span>
-                                =======
-                                <a href="{{ route('quick-responses.index') }}"
-                                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('quick-responses.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
-                                    <i class="fas fa-bolt w-5 h-5"></i>
-                                    <span>Quick Response</span>
-                                    >>>>>>> 5f4079a461fbe2152c367105eb3230a604076599
-                                </a>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('quick-responses.index') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('quick-responses.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                <i class="fas fa-bolt w-5 h-5"></i>
+                                <span>Quick Response</span>
+                            </a>
                         </li>
                     @endif
                 </ul>
@@ -261,6 +269,35 @@
             </header>
 
             <main class="flex-1 overflow-auto">
+                <!-- Flash Messages -->
+                @if(session('success'))
+                    <div class="mx-6 mt-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mx-6 mt-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+                        <i class="fas fa-exclamation-circle text-red-600"></i>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                @endif
+
+                @if(session('warning'))
+                    <div class="mx-6 mt-6 bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                        <span>{{ session('warning') }}</span>
+                    </div>
+                @endif
+
+                @if(session('info'))
+                    <div class="mx-6 mt-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg flex items-center gap-3" role="alert">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                        <span>{{ session('info') }}</span>
+                    </div>
+                @endif
+
                 @yield('content')
             </main>
         </div>

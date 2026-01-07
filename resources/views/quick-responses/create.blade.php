@@ -155,5 +155,22 @@
             document.getElementById('title').scrollIntoView({ behavior: 'smooth', block: 'center' });
             document.getElementById('title').focus();
         }
+
+        // Debug form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(e) {
+                console.log('Form is being submitted');
+                console.log('Form action:', form.action);
+                console.log('Form method:', form.method);
+                
+                const formData = new FormData(form);
+                console.log('Form data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
+            });
+        });
     </script>
 @endsection

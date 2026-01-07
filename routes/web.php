@@ -31,8 +31,14 @@ Route::get('/chatbot/welcome', [ChatbotController::class, 'welcome'])->name('cha
 Route::post('/chatbot/send', [ChatbotController::class, 'send'])->name('chatbot.send');
 Route::post('/chatbot/review', [ChatbotController::class, 'submitReview'])->name('chatbot.review');
 
-// Auth routes - Manual (like calendar project)
+// API untuk quick responses
+Route::get('/api/quick-responses', [QuickResponseController::class, 'getQuickResponses'])->name('api.quick-responses');
+
+// Auth routes - Using Laravel Auth
 Route::get('/login', function() {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
     return view('login');
 })->name('login')->middleware('guest');
 
@@ -58,13 +64,6 @@ Route::post('/logout', function(\Illuminate\Http\Request $request) {
     $request->session()->regenerateToken();
     return redirect('/login');
 })->name('logout')->middleware('auth');
-// API untuk quick responses
-Route::get('/api/quick-responses', [QuickResponseController::class, 'getQuickResponses'])->name('api.quick-responses');
-
-// Auth routes
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected routes - Admin Dashboard
 Route::middleware(['auth'])->group(function () {
