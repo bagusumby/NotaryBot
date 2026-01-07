@@ -94,16 +94,16 @@
                         </li>
                         <li>
                             <a href="{{ route('bot-training') }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('bot-training') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('bot-training') || request()->routeIs('intents.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-robot w-5 h-5"></i>
                                 <span>Bot Training</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('settings.edit') }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
-                                <i class="fas fa-cog w-5 h-5"></i>
-                                <span>System Settings</span>
+                            <a href="{{ route('quick-responses.index') }}"
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('quick-responses.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                <i class="fas fa-bolt w-5 h-5"></i>
+                                <span>Quick Response</span>
                             </a>
                         </li>
                     @endif
@@ -212,17 +212,23 @@
                         </li>
                         <li>
                             <a href="{{ route('bot-training') }}"
-                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('bot-training') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('bot-training') || request()->routeIs('intents.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-robot w-5 h-5"></i>
                                 <span>Bot Training</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('settings.edit') }}"
+                            <<<<<<< HEAD <a href="{{ route('settings.edit') }}"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('settings.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
                                 <i class="fas fa-cog w-5 h-5"></i>
                                 <span>System Settings</span>
-                            </a>
+                                =======
+                                <a href="{{ route('quick-responses.index') }}"
+                                    class="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('quick-responses.*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">
+                                    <i class="fas fa-bolt w-5 h-5"></i>
+                                    <span>Quick Response</span>
+                                    >>>>>>> 5f4079a461fbe2152c367105eb3230a604076599
+                                </a>
                         </li>
                     @endif
                 </ul>

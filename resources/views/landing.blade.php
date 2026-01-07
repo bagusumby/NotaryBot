@@ -401,6 +401,11 @@
 
                 if (history.length > 0) {
                     messagesContainer.innerHTML = ''; // Clear first
+
+                    // Check if there are review buttons in history
+                    const hasReviewButtons = history.some(item => item.type === 'review-buttons');
+
+                    // Load messages first
                     history.forEach(item => {
                         if (item.type === 'text') {
                             addMessageToDOM(item.message, item.sender);
@@ -415,8 +420,34 @@
                                 console.error('Error parsing payload:', e);
                             }
                         }
+                        // Skip review-buttons for now, we'll add them after chips
                     });
+
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                    // Load quick responses after history is loaded
+                    // Check if last message is from bot, then show general chips
+                    const lastMessage = history[history.length - 1];
+                    if ((lastMessage && lastMessage.sender === 'bot') || hasReviewButtons) {
+                        setTimeout(() => {
+                            loadQuickResponses('general');
+
+                            // Add review buttons after chips if they exist in history
+                            if (hasReviewButtons) {
+                                setTimeout(() => {
+                                    console.log('Restoring review buttons after chips');
+                                    showReviewButtons();
+                                }, 200);
+                            }
+                        }, 300);
+                    }
+                } else {
+                    // No history, check if user is registered to show welcome chips
+                    if (isRegistered) {
+                        setTimeout(() => {
+                            loadQuickResponses('welcome');
+                        }, 500);
+                    }
                 }
             }
 
@@ -514,12 +545,17 @@
                                 }
                             });
                         }
+
+                        // Load welcome quick responses
+                        loadQuickResponses('welcome');
+
                         updateChatTimestamp();
                         startInactivityTimer();
                     })
                     .catch(err => {
                         console.error('Welcome error:', err);
                         addBotMessage('Halo! Ada yang bisa saya bantu?');
+                        loadQuickResponses('welcome');
                         updateChatTimestamp();
                         startInactivityTimer();
                     });
@@ -532,6 +568,7 @@
                         if (data.registered) {
                             isRegistered = true;
                             showChatArea();
+                            loadChatHistory(); // Load chat history untuk restore chips
                             startInactivityTimer();
                         } else {
                             showRegistrationForm();
@@ -588,10 +625,13 @@
                 // Remove old review buttons first
                 removeReviewButtons();
 
-                addBotMessage('Apakah ada pertanyaan lain?');
-                showReviewButtons();
-                // Save review buttons state to localStorage
-                saveChatHistory('review-buttons', 'bot', 'review-buttons');
+                // Load quick responses and add follow-up message after chips are loaded
+                loadQuickResponsesWithCallback('general', () => {
+                    addBotMessage('Apakah ada pertanyaan lain?');
+                    showReviewButtons();
+                    // Save review buttons state to localStorage
+                    saveChatHistory('review-buttons', 'bot', 'review-buttons');
+                });
             }
 
             function removeReviewButtons() {
@@ -733,6 +773,10 @@
                                     handlePayload(msg.data);
                                 }
                             });
+
+                            // Load welcome quick responses
+                            loadQuickResponses('welcome');
+
                             // Start inactivity timer after welcome message
                             startInactivityTimer();
                         }
@@ -764,6 +808,10 @@
 
                 // Remove old review buttons when user sends new message
                 removeReviewButtons();
+
+                // Remove existing quick response chips when user sends message
+                const allChips = document.querySelectorAll('.quick-response-chips');
+                allChips.forEach(chip => chip.remove());
 
                 const messagesContainer = document.getElementById('chat-messages');
 
@@ -828,6 +876,12 @@
                             addBotMessage(data.reply);
                         }
 
+                        // Load general quick responses after bot response
+                        // Tunggu sedikit agar bot message muncul dulu
+                        setTimeout(() => {
+                            loadQuickResponses('general');
+                        }, 300);
+
                         // Update timestamp and reset timer after bot response
                         updateChatTimestamp();
                         resetInactivityTimer();
@@ -880,6 +934,107 @@
 
                 messagesContainer.appendChild(quickRepliesContainer);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            function loadQuickResponses(type = 'general') {
+                console.log('Loading quick responses, type:', type);
+
+                // Remove existing quick response chips first
+                const existingChips = document.querySelector('.quick-response-chips');
+                if (existingChips) {
+                    existingChips.remove();
+                }
+
+                fetch(`{{ route('api.quick-responses') }}?type=${type}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('Quick responses loaded:', data);
+
+                        if (data.quickResponses && data.quickResponses.length > 0) {
+                            const messagesContainer = document.getElementById('chat-messages');
+                            const quickRepliesContainer = document.createElement('div');
+                            quickRepliesContainer.className = 'flex flex-wrap gap-2 mb-4 quick-response-chips';
+
+                            data.quickResponses.forEach(qr => {
+                                const button = document.createElement('button');
+                                button.className =
+                                    'px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-blue-600';
+                                button.style.cssText =
+                                    'background-color: #2563eb !important; opacity: 1 !important;';
+                                button.textContent = qr.title;
+                                button.onclick = () => {
+                                    // Remove all quick response chips when clicked
+                                    const allChips = document.querySelectorAll('.quick-response-chips');
+                                    allChips.forEach(chip => chip.remove());
+
+                                    document.getElementById('chat-input').value = qr.value;
+                                    sendMessage();
+                                };
+                                quickRepliesContainer.appendChild(button);
+                            });
+
+                            messagesContainer.appendChild(quickRepliesContainer);
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Load quick responses error:', err);
+                    });
+            }
+
+            function loadQuickResponsesWithCallback(type = 'general', callback) {
+                console.log('Loading quick responses with callback, type:', type);
+
+                // Remove existing quick response chips first
+                const existingChips = document.querySelector('.quick-response-chips');
+                if (existingChips) {
+                    existingChips.remove();
+                }
+
+                fetch(`{{ route('api.quick-responses') }}?type=${type}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('Quick responses loaded:', data);
+
+                        if (data.quickResponses && data.quickResponses.length > 0) {
+                            const messagesContainer = document.getElementById('chat-messages');
+                            const quickRepliesContainer = document.createElement('div');
+                            quickRepliesContainer.className = 'flex flex-wrap gap-2 mb-6 quick-response-chips';
+
+                            data.quickResponses.forEach(qr => {
+                                const button = document.createElement('button');
+                                button.className =
+                                    'px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 shadow-md hover:shadow-lg transition-all duration-200 border-2 border-blue-600';
+                                button.style.cssText =
+                                    'background-color: #2563eb !important; opacity: 1 !important;';
+                                button.textContent = qr.title;
+                                button.onclick = () => {
+                                    // Remove all quick response chips when clicked
+                                    const allChips = document.querySelectorAll('.quick-response-chips');
+                                    allChips.forEach(chip => chip.remove());
+
+                                    document.getElementById('chat-input').value = qr.value;
+                                    sendMessage();
+                                };
+                                quickRepliesContainer.appendChild(button);
+                            });
+
+                            messagesContainer.appendChild(quickRepliesContainer);
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        }
+
+                        // Call callback after chips are loaded and rendered
+                        if (callback && typeof callback === 'function') {
+                            setTimeout(callback, 100); // Small delay to ensure DOM is updated
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Load quick responses error:', err);
+                        // Still call callback even on error
+                        if (callback && typeof callback === 'function') {
+                            callback();
+                        }
+                    });
             }
 
             function addCard(card) {

@@ -15,6 +15,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UnansweredQuestionController;
 use App\Http\Controllers\EmployeeScheduleController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\QuickResponseController;
 
 // Public routes
 Route::get('/', function () {
@@ -57,6 +58,13 @@ Route::post('/logout', function(\Illuminate\Http\Request $request) {
     $request->session()->regenerateToken();
     return redirect('/login');
 })->name('logout')->middleware('auth');
+// API untuk quick responses
+Route::get('/api/quick-responses', [QuickResponseController::class, 'getQuickResponses'])->name('api.quick-responses');
+
+// Auth routes
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected routes - Admin Dashboard
 Route::middleware(['auth'])->group(function () {
@@ -93,5 +101,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
+    // Intent/Bot Training routes
+    Route::resource('intents', IntentController::class);
+    Route::post('intents/{intent}/sync', [IntentController::class, 'sync'])->name('intents.sync');
+    Route::post('intents-import', [IntentController::class, 'import'])->name('intents.import');
+    
+    // Quick Response routes
+    Route::resource('quick-responses', QuickResponseController::class);
 });
 
