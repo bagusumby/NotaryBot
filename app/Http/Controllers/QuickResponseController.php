@@ -140,6 +140,40 @@ class QuickResponseController extends Controller
             ->with('success', 'Quick Response berhasil dihapus!');
     }
 
+    // Update order via drag and drop
+    public function updateOrder(Request $request)
+    {
+        try {
+            $order = $request->input('order');
+            
+            foreach ($order as $item) {
+                QuickResponse::where('id', $item['id'])
+                    ->update(['order' => $item['order']]);
+            }
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('QuickResponse UpdateOrder Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // Toggle active/inactive
+    public function toggle(Request $request, $id)
+    {
+        try {
+            $quickResponse = QuickResponse::findOrFail($id);
+            $quickResponse->update([
+                'is_active' => $request->input('is_active', false)
+            ]);
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('QuickResponse Toggle Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     // API untuk chatbot
     public function getQuickResponses(Request $request)
     {

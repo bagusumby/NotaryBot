@@ -107,5 +107,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Quick Response routes
     Route::resource('quick-responses', QuickResponseController::class);
+    Route::post('quick-responses/update-order', [QuickResponseController::class, 'updateOrder'])->name('quick-responses.update-order');
+    Route::post('quick-responses/{id}/toggle', [QuickResponseController::class, 'toggle'])->name('quick-responses.toggle');
 });
 
