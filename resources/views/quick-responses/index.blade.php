@@ -2,12 +2,31 @@
 
 @section('title', 'Quick Response Management - Notary Services')
 
+@push('styles')
+<style>
+    .sortable-ghost {
+        opacity: 0.4;
+        background: #e5e7eb;
+    }
+    .sortable-drag {
+        opacity: 0.8;
+    }
+    .drag-handle {
+        cursor: move;
+        cursor: grab;
+    }
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+</style>
+@endpush
+
 @section('content')
     <div class="p-6 max-w-7xl mx-auto">
         <div class="mb-8 flex justify-between items-center">
             <div>
                 <h1 class="text-3xl text-gray-900 mb-2">Quick Response Management</h1>
-                <p class="text-gray-600">Kelola quick response yang muncul sebagai chips di chatbot</p>
+                <p class="text-gray-600">Drag & drop untuk mengatur urutan, toggle untuk aktif/nonaktif</p>
             </div>
             <a href="{{ route('quick-responses.create') }}" 
                class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition inline-flex items-center gap-2">
@@ -76,7 +95,7 @@
                 <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p class="text-sm text-blue-800">
                         <i class="fas fa-info-circle mr-1"></i>
-                        <strong>Welcome Chips:</strong> Ditampilkan saat user baru memulai chat dengan chatbot (loadWelcomeMessage)
+                        <strong>Welcome Chips:</strong> Ditampilkan saat user baru memulai chat. Drag untuk ubah urutan, toggle untuk aktif/nonaktif.
                     </p>
                 </div>
                 @php
@@ -84,39 +103,42 @@
                 @endphp
                 
                 @if($welcomeResponses->count() > 0)
-                    <div class="space-y-3">
+                    <div id="sortable-welcome" class="space-y-3">
                         @foreach($welcomeResponses as $response)
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition">
-                            <div class="flex items-center gap-4 flex-1">
-                                <div class="text-gray-500 font-mono text-sm">
-                                    #{{ $response->order }}
+                        <div class="quick-response-item bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-md transition" data-id="{{ $response->id }}">
+                            <div class="flex items-center gap-4">
+                                <div class="drag-handle text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-grip-vertical text-xl"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <h3 class="text-gray-900 font-medium">{{ $response->title }}</h3>
-                                        @if($response->is_active)
-                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Aktif</span>
-                                        @else
-                                            <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded">Nonaktif</span>
-                                        @endif
+                                        <span class="text-xs text-gray-500 font-mono">ID: {{ $response->id }}</span>
                                     </div>
-                                    <p class="text-sm text-gray-600">Value: <span class="font-mono bg-gray-200 px-2 py-0.5 rounded">{{ $response->value }}</span></p>
+                                    <p class="text-sm text-gray-600">Value: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{{ $response->value }}</span></p>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('quick-responses.edit', $response) }}" 
-                                   class="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm border border-blue-200 rounded-lg hover:bg-blue-50 transition">
-                                    <i class="fas fa-edit mr-1"></i> Edit
-                                </a>
-                                <form action="{{ route('quick-responses.destroy', $response) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            onclick="return confirm('Yakin ingin menghapus quick response ini?')"
-                                            class="text-red-600 hover:text-red-700 px-3 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition">
-                                        <i class="fas fa-trash mr-1"></i> Hapus
-                                    </button>
-                                </form>
+                                <div class="flex items-center gap-3">
+                                    <!-- Toggle Active/Inactive -->
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer toggle-active" 
+                                               data-id="{{ $response->id }}"
+                                               {{ $response->is_active ? 'checked' : '' }}>
+                                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                    </label>
+                                    <a href="{{ route('quick-responses.edit', $response) }}" 
+                                       class="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm border border-blue-200 rounded-lg hover:bg-blue-50 transition">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('quick-responses.destroy', $response) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                onclick="return confirm('Yakin ingin menghapus quick response ini?')"
+                                                class="text-red-600 hover:text-red-700 px-3 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                         @endforeach
@@ -138,7 +160,7 @@
                 <div class="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-4">
                     <p class="text-sm text-purple-800">
                         <i class="fas fa-info-circle mr-1"></i>
-                        <strong>General Chips:</strong> Ditampilkan setelah bot memberikan respon kepada user
+                        <strong>General Chips:</strong> Ditampilkan setelah bot memberikan respon. Drag untuk ubah urutan, toggle untuk aktif/nonaktif.
                     </p>
                 </div>
                 @php
@@ -146,39 +168,42 @@
                 @endphp
                 
                 @if($generalResponses->count() > 0)
-                    <div class="space-y-3">
+                    <div id="sortable-general" class="space-y-3">
                         @foreach($generalResponses as $response)
-                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition">
-                            <div class="flex items-center gap-4 flex-1">
-                                <div class="text-gray-500 font-mono text-sm">
-                                    #{{ $response->order }}
+                        <div class="quick-response-item bg-white border-2 border-gray-200 rounded-lg p-4 hover:shadow-md transition" data-id="{{ $response->id }}">
+                            <div class="flex items-center gap-4">
+                                <div class="drag-handle text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-grip-vertical text-xl"></i>
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-1">
                                         <h3 class="text-gray-900 font-medium">{{ $response->title }}</h3>
-                                        @if($response->is_active)
-                                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Aktif</span>
-                                        @else
-                                            <span class="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded">Nonaktif</span>
-                                        @endif
+                                        <span class="text-xs text-gray-500 font-mono">ID: {{ $response->id }}</span>
                                     </div>
-                                    <p class="text-sm text-gray-600">Value: <span class="font-mono bg-gray-200 px-2 py-0.5 rounded">{{ $response->value }}</span></p>
+                                    <p class="text-sm text-gray-600">Value: <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{{ $response->value }}</span></p>
                                 </div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <a href="{{ route('quick-responses.edit', $response) }}" 
-                                   class="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm border border-blue-200 rounded-lg hover:bg-blue-50 transition">
-                                    <i class="fas fa-edit mr-1"></i> Edit
-                                </a>
-                                <form action="{{ route('quick-responses.destroy', $response) }}" method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" 
-                                            onclick="return confirm('Yakin ingin menghapus quick response ini?')"
-                                            class="text-red-600 hover:text-red-700 px-3 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition">
-                                        <i class="fas fa-trash mr-1"></i> Hapus
-                                    </button>
-                                </form>
+                                <div class="flex items-center gap-3">
+                                    <!-- Toggle Active/Inactive -->
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer toggle-active" 
+                                               data-id="{{ $response->id }}"
+                                               {{ $response->is_active ? 'checked' : '' }}>
+                                        <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                    </label>
+                                    <a href="{{ route('quick-responses.edit', $response) }}" 
+                                       class="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm border border-blue-200 rounded-lg hover:bg-blue-50 transition">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('quick-responses.destroy', $response) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" 
+                                                onclick="return confirm('Yakin ingin menghapus quick response ini?')"
+                                                class="text-red-600 hover:text-red-700 px-3 py-2 text-sm border border-red-200 rounded-lg hover:bg-red-50 transition">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                         @endforeach
@@ -197,7 +222,123 @@
         </div>
     </div>
 
+    <!-- SortableJS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.1/Sortable.min.js"></script>
+
     <script>
+        // Initialize Sortable for Welcome chips
+        const welcomeList = document.getElementById('sortable-welcome');
+        if (welcomeList) {
+            new Sortable(welcomeList, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                onEnd: function(evt) {
+                    updateOrder('welcome');
+                }
+            });
+        }
+
+        // Initialize Sortable for General chips
+        const generalList = document.getElementById('sortable-general');
+        if (generalList) {
+            new Sortable(generalList, {
+                animation: 150,
+                handle: '.drag-handle',
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                onEnd: function(evt) {
+                    updateOrder('general');
+                }
+            });
+        }
+
+        // Update order after drag and drop
+        function updateOrder(type) {
+            const listId = type === 'welcome' ? 'sortable-welcome' : 'sortable-general';
+            const items = document.querySelectorAll(`#${listId} .quick-response-item`);
+            const order = Array.from(items).map((item, index) => ({
+                id: item.dataset.id,
+                order: index
+            }));
+
+            fetch('{{ route("quick-responses.index") }}/update-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ order: order })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Urutan berhasil diperbarui', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Gagal memperbarui urutan', 'error');
+            });
+        }
+
+        // Toggle active/inactive
+        document.querySelectorAll('.toggle-active').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const id = this.dataset.id;
+                const isActive = this.checked;
+
+                fetch(`{{ route("quick-responses.index") }}/${id}/toggle`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ is_active: isActive })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(
+                            isActive ? 'Quick Response diaktifkan' : 'Quick Response dinonaktifkan', 
+                            'success'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    this.checked = !isActive; // Revert toggle
+                    showNotification('Gagal mengubah status', 'error');
+                });
+            });
+        });
+
+        // Show notification
+        function showNotification(message, type) {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500'
+            };
+
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
         function showTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {

@@ -38,6 +38,8 @@ class QuickResponseController extends Controller
 
     public function store(Request $request)
     {
+        Log::info('QuickResponse Store: Request received', $request->all());
+        
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
@@ -46,22 +48,33 @@ class QuickResponseController extends Controller
                 'order' => 'required|integer|min:0'
             ]);
 
-            // Handle checkbox separately
+            Log::info('QuickResponse Store: Validation passed', $validated);
+
+            // Handle checkbox separately (checkbox sends "on" when checked, nothing when unchecked)
             $validated['is_active'] = $request->has('is_active');
 
-            QuickResponse::create($validated);
+            $quickResponse = QuickResponse::create($validated);
+            
+            Log::info('QuickResponse Store: Created successfully', ['id' => $quickResponse->id]);
 
             return redirect()->route('quick-responses.index')
                 ->with('success', 'Quick Response berhasil ditambahkan!');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()
-                ->withErrors($e->validator)
+            Log::error('QuickResponse Store Validation Error:', [
+                'errors' => $e->errors()
+            ]);
+            
+            return back()
+                ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
-            Log::error('Error creating quick response: ' . $e->getMessage());
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
-                ->withInput();
+            Log::error('QuickResponse Store Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan Quick Response: ' . $e->getMessage());
         }
     }
 
@@ -79,20 +92,45 @@ class QuickResponseController extends Controller
 
     public function update(Request $request, QuickResponse $quickResponse)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'value' => 'required|string|max:255',
-            'type' => 'required|in:welcome,general',
-            'order' => 'required|integer|min:0'
+        Log::info('QuickResponse Update: Request received', [
+            'id' => $quickResponse->id,
+            'data' => $request->all()
         ]);
+        
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'value' => 'required|string|max:255',
+                'type' => 'required|in:welcome,general',
+                'order' => 'required|integer|min:0'
+            ]);
 
-        // Handle checkbox separately
-        $validated['is_active'] = $request->has('is_active');
+            // Handle checkbox separately (checkbox sends "on" when checked, nothing when unchecked)
+            $validated['is_active'] = $request->has('is_active');
 
-        $quickResponse->update($validated);
+            $quickResponse->update($validated);
+            
+            Log::info('QuickResponse Update: Updated successfully', ['id' => $quickResponse->id]);
 
-        return redirect()->route('quick-responses.index')
-            ->with('success', 'Quick Response berhasil diupdate!');
+            return redirect()->route('quick-responses.index')
+                ->with('success', 'Quick Response berhasil diupdate!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('QuickResponse Update Validation Error:', [
+                'errors' => $e->errors()
+            ]);
+            
+            return back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            Log::error('QuickResponse Update Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()
+                ->withInput()
+                ->with('error', 'Gagal mengupdate Quick Response: ' . $e->getMessage());
+        }
     }
 
     public function destroy(QuickResponse $quickResponse)
@@ -101,6 +139,40 @@ class QuickResponseController extends Controller
 
         return redirect()->route('quick-responses.index')
             ->with('success', 'Quick Response berhasil dihapus!');
+    }
+
+    // Update order via drag and drop
+    public function updateOrder(Request $request)
+    {
+        try {
+            $order = $request->input('order');
+            
+            foreach ($order as $item) {
+                QuickResponse::where('id', $item['id'])
+                    ->update(['order' => $item['order']]);
+            }
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('QuickResponse UpdateOrder Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // Toggle active/inactive
+    public function toggle(Request $request, $id)
+    {
+        try {
+            $quickResponse = QuickResponse::findOrFail($id);
+            $quickResponse->update([
+                'is_active' => $request->input('is_active', false)
+            ]);
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('QuickResponse Toggle Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     // API untuk chatbot

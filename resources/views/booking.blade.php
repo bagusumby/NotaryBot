@@ -177,11 +177,21 @@
     </div>
 
     @push('scripts')
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script>
             let currentStep = 1;
             const formData = {};
+            let selectedTimeSlot = null;
 
             function nextStep(step) {
+                // Validation for step 2
+                if (currentStep === 2 && step === 3) {
+                    if (!selectedTimeSlot) {
+                        alert('Silakan pilih waktu terlebih dahulu');
+                        return;
+                    }
+                }
+
                 // Hide current step
                 document.getElementById(`form-step-${currentStep}`).classList.add('hidden');
 
@@ -271,20 +281,142 @@
             <p class="text-sm text-gray-600">Tanggal</p>
             <p class="text-gray-900">${new Date(date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
         </div>
+        <div>
+            <p class="text-sm text-gray-600">Waktu</p>
+            <p class="text-gray-900">${selectedTimeSlot || '-'}</p>
+        </div>
     `;
 
                 document.getElementById('confirmation-details').innerHTML = confirmationHtml;
+            }
+
+            // Load available time slots when date is selected
+            $('#date').on('change', function() {
+                loadAvailableSlots();
+            });
+
+            function loadAvailableSlots() {
+                const date = $('#date').val();
+
+                if (!date) {
+                    $('#time-slots').html(`
+                        <div class="text-center py-8 text-gray-500 col-span-full">
+                            Pilih tanggal terlebih dahulu
+                        </div>
+                    `);
+                    return;
+                }
+
+                // Show loading
+                $('#time-slots').html(`
+                    <div class="text-center py-8 text-gray-500 col-span-full">
+                        <i class="fas fa-spinner fa-spin mr-2"></i>
+                        Memuat slot waktu yang tersedia...
+                    </div>
+                `);
+
+                $.ajax({
+                    url: '{{ route('appointments.getSlots') }}',
+                    method: 'GET',
+                    data: {
+                        date: date
+                    },
+                    success: function(response) {
+                        if (response.slots && response.slots.length > 0) {
+                            let slotsHtml = '';
+                            response.slots.forEach(function(slot) {
+                                slotsHtml += `
+                                    <button type="button" 
+                                            class="time-slot-btn px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-blue-600 hover:bg-blue-50 transition-colors text-center"
+                                            data-time="${slot.time}">
+                                        <div class="font-semibold text-gray-900">${slot.time}</div>
+                                        <div class="text-xs text-gray-500">${slot.available_slots} tersedia</div>
+                                    </button>
+                                `;
+                            });
+                            $('#time-slots').html(slotsHtml);
+
+                            // Add click handlers to time slot buttons
+                            $('.time-slot-btn').on('click', function() {
+                                $('.time-slot-btn').removeClass('border-blue-600 bg-blue-50');
+                                $(this).addClass('border-blue-600 bg-blue-50');
+                                selectedTimeSlot = $(this).data('time');
+                            });
+                        } else {
+                            $('#time-slots').html(`
+                                <div class="text-center py-8 text-red-500 col-span-full">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                    ${response.message || 'Tidak ada slot tersedia untuk tanggal ini'}
+                                </div>
+                            `);
+                            selectedTimeSlot = null;
+                        }
+                    },
+                    error: function() {
+                        $('#time-slots').html(`
+                            <div class="text-center py-8 text-red-500 col-span-full">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                Terjadi kesalahan saat memuat slot. Silakan coba lagi.
+                            </div>
+                        `);
+                        selectedTimeSlot = null;
+                    }
+                });
             }
 
             // Handle form submission
             document.getElementById('booking-form').addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                // Show success message
-                alert('Booking berhasil! Konfirmasi akan dikirim via WhatsApp dan Email.');
+                if (!selectedTimeSlot) {
+                    alert('Silakan pilih waktu terlebih dahulu');
+                    return;
+                }
 
-                // Redirect to home
-                window.location.href = '{{ route('landing') }}';
+                // Collect form data
+                const formData = new FormData();
+                formData.append('name', document.getElementById('clientName').value);
+                formData.append('email', document.getElementById('clientEmail').value);
+                formData.append('phone', document.getElementById('clientPhone').value);
+                formData.append('booking_date', document.getElementById('date').value);
+                formData.append('booking_time', selectedTimeSlot);
+                formData.append('status', 'Pending');
+                formData.append('notes', document.getElementById('notes').value + '\n\nJenis Layanan: ' + document
+                    .getElementById('serviceType').value);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                // Disable submit button
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memproses...';
+
+                // Submit via AJAX
+                $.ajax({
+                    url: '{{ route('appointments.store') }}',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        alert('Booking berhasil! Konfirmasi akan dikirim via WhatsApp dan Email.');
+                        window.location.href = '{{ route('landing') }}';
+                    },
+                    error: function(xhr) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Konfirmasi Booking';
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            let errorMessage = 'Terjadi kesalahan:\n';
+                            for (const key in errors) {
+                                errorMessage += '- ' + errors[key][0] + '\n';
+                            }
+                            alert(errorMessage);
+                        } else {
+                            alert('Terjadi kesalahan. Silakan coba lagi.');
+                        }
+                    }
+                });
             });
 
             // Set minimum date to tomorrow

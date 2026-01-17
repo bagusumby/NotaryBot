@@ -128,23 +128,7 @@
                     @enderror
                 </div>
 
-                <div class="mb-6">
-                    <label for="order" class="block text-gray-700 font-medium mb-2">
-                        Order <span class="text-red-500">*</span>
-                    </label>
-                    <p class="text-sm text-gray-500 mb-2">Urutan tampilan chip (angka lebih kecil ditampilkan lebih dulu)</p>
-                    <input type="number" 
-                           name="order" 
-                           id="order" 
-                           value="{{ old('order', 0) }}"
-                           min="0"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('order') border-red-500 @enderror"
-                           placeholder="0"
-                           required>
-                    @error('order')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+                <input type="hidden" name="order" value="999">
 
                 <div class="mb-6">
                     <label class="flex items-center gap-3 cursor-pointer">
@@ -184,5 +168,22 @@
             document.getElementById('title').scrollIntoView({ behavior: 'smooth', block: 'center' });
             document.getElementById('title').focus();
         }
+
+        // Debug form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            
+            form.addEventListener('submit', function(e) {
+                console.log('Form is being submitted');
+                console.log('Form action:', form.action);
+                console.log('Form method:', form.method);
+                
+                const formData = new FormData(form);
+                console.log('Form data:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`  ${key}: ${value}`);
+                }
+            });
+        });
     </script>
 @endsection

@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +45,34 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(EmployeeSchedule::class);
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin' || $this->role === 'superadmin';
+    }
+
+    /**
+     * Check if user is employee
+     */
+    public function isEmployee()
+    {
+        return $this->role === 'employee';
+    }
+
+    /**
+     * Check if user is staff
+     */
+    public function isStaff()
+    {
+        return $this->role === 'staff';
     }
 }
