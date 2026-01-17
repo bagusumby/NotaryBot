@@ -1,95 +1,149 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Schedule Management - Calendar View')
+@section('title', 'Schedule Management')
 
 @section('content')
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Header -->
-        <div class="mb-6 flex justify-between items-center">
-            <h2 class="text-3xl font-bold text-gray-900">
-                <i class="fas fa-calendar-alt mr-2 text-blue-600"></i>Schedule Management - Appointments Calendar
-            </h2>
-            <a href="{{ route('appointments.create') }}"
-                class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                <i class="fas fa-plus"></i>
-                Create Appointment
-            </a>
-        </div>
-
-        @if (session('success'))
-            <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg" id="successAlert">
-                <div class="flex items-center">
-                    <i class="fas fa-check-circle text-green-500 mr-3"></i>
-                    <p class="font-semibold text-green-800">{{ session('success') }}</p>
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg">
+                                <i class="fas fa-calendar-alt text-blue-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-gray-900">Schedule Management</h1>
+                                <p class="text-sm text-gray-500 mt-0.5">Manage your appointments calendar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ route('appointments.create') }}"
+                        class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md font-medium text-sm">
+                        <i class="fas fa-plus"></i>
+                        <span>New Appointment</span>
+                    </a>
                 </div>
             </div>
-        @endif
 
-        @if (session('error'))
-            <div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg" id="errorAlert">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
-                    <p class="font-semibold text-red-800">{{ session('error') }}</p>
+            @if (session('success'))
+                <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm" id="successAlert">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-check-circle text-green-600 text-lg"></i>
+                        </div>
+                        <p class="ml-3 text-sm font-medium text-green-800">{{ session('success') }}</p>
+                        <button onclick="document.getElementById('successAlert').remove()" class="ml-auto text-green-600 hover:text-green-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 shadow-sm" id="errorAlert">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-circle text-red-600 text-lg"></i>
+                        </div>
+                        <p class="ml-3 text-sm font-medium text-red-800">{{ session('error') }}</p>
+                        <button onclick="document.getElementById('errorAlert').remove()" class="ml-auto text-red-600 hover:text-red-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Calendar Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="p-6">
+                    <div id="calendar"></div>
                 </div>
             </div>
-        @endif
-
-        <!-- Calendar Card -->
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <div id="calendar"></div>
         </div>
     </div>
 
     <!-- Appointment Modal -->
-    <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+    <div id="appointmentModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <form id="appointmentStatusForm" method="POST" action="{{ route('schedule-management.update.status') }}">
                 @csrf
                 <input type="hidden" name="appointment_id" id="modalAppointmentId">
 
                 <!-- Modal Header -->
-                <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <h3 class="text-xl font-semibold text-gray-900">Appointment Details</h3>
-                    <button type="button" onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-2xl"></i>
+                <div class="bg-blue-600 px-6 py-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fas fa-calendar-check"></i>
+                        Appointment Details
+                    </h3>
+                    <button type="button" onclick="closeModal()" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
                     </button>
                 </div>
 
                 <!-- Modal Body -->
-                <div class="px-6 py-4 space-y-4">
-                    <div>
-                        <strong class="text-gray-700">Assigned To:</strong>
-                        <span id="modalEmployee" class="text-gray-900 ml-2">N/A</span>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Client:</strong>
-                        <span id="modalAppointmentName" class="text-gray-900 ml-2">N/A</span>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Email:</strong>
-                        <span id="modalEmail" class="text-gray-900 ml-2">N/A</span>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Phone:</strong>
-                        <span id="modalPhone" class="text-gray-900 ml-2">N/A</span>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Date & Time:</strong>
-                        <span id="modalStartTime" class="text-gray-900 ml-2">N/A</span>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Notes:</strong>
-                        <p id="modalNotes" class="text-gray-900 mt-1">N/A</p>
-                    </div>
-                    <div>
-                        <strong class="text-gray-700">Current Status:</strong>
-                        <span id="modalStatusBadge" class="ml-2">N/A</span>
+                <div class="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+                    <!-- Client Information -->
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-user text-blue-600"></i>
+                            Client Information
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Name:</span>
+                                <span id="modalAppointmentName" class="text-sm font-medium text-gray-900">N/A</span>
+                            </div>
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Email:</span>
+                                <span id="modalEmail" class="text-sm text-gray-900 break-all">N/A</span>
+                            </div>
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Phone:</span>
+                                <span id="modalPhone" class="text-sm text-gray-900">N/A</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <label for="modalStatusSelect" class="block text-gray-700 font-semibold mb-2">Change Status:</label>
+                    <!-- Appointment Details -->
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <i class="fas fa-calendar text-blue-600"></i>
+                            Appointment Details
+                        </h4>
+                        <div class="space-y-2.5">
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Assigned to:</span>
+                                <span id="modalEmployee" class="text-sm font-medium text-gray-900">N/A</span>
+                            </div>
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Date & Time:</span>
+                                <span id="modalStartTime" class="text-sm font-medium text-gray-900">N/A</span>
+                            </div>
+                            <div class="flex">
+                                <span class="text-sm text-gray-600 w-28 flex-shrink-0">Status:</span>
+                                <span id="modalStatusBadge">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="bg-amber-50 rounded-lg p-4 mb-4">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i class="fas fa-sticky-note text-amber-600"></i>
+                            Notes
+                        </h4>
+                        <p id="modalNotes" class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">N/A</p>
+                    </div>
+
+                    <!-- Update Status -->
+                    <div class="border-t pt-4">
+                        <label for="modalStatusSelect" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Update Status
+                        </label>
                         <select name="status"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm"
                             id="modalStatusSelect">
                             <option value="Pending">Pending</option>
                             <option value="Confirmed">Confirmed</option>
@@ -100,13 +154,13 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                <div class="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t">
                     <button type="button" onclick="closeModal()"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-                        Close
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Cancel
                     </button>
                     <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
                         onclick="return confirm('Are you sure you want to update the booking status?')">
                         Update Status
                     </button>
@@ -119,82 +173,207 @@
 @push('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.2/dist/fullcalendar.min.css" />
     <style>
+        /* General Calendar Styling */
         #calendar {
-            background-color: white;
-            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Toolbar */
+        .fc-toolbar {
+            padding: 1rem;
+            margin-bottom: 1.5rem !important;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
         }
 
         .fc-toolbar h2 {
-            font-size: 1.5em;
-            color: #1f2937;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
         }
 
+        /* Buttons */
         .fc-button {
-            background-color: #3b82f6 !important;
-            border-color: #3b82f6 !important;
+            background: #3b82f6 !important;
+            border: 1px solid #3b82f6 !important;
             color: white !important;
             text-transform: capitalize !important;
-            padding: 6px 12px !important;
-            border-radius: 6px !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.375rem !important;
+            font-weight: 500 !important;
+            font-size: 0.875rem !important;
+            transition: all 0.15s ease !important;
+            text-align: center !important;
+            line-height: 1.5 !important;
+            vertical-align: middle !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         .fc-button:hover {
-            background-color: #2563eb !important;
+            background: #2563eb !important;
             border-color: #2563eb !important;
         }
 
-        .fc-state-active,
-        .fc-state-active:hover {
-            background-color: #1d4ed8 !important;
+        .fc-button:active,
+        .fc-state-active {
+            background: #1d4ed8 !important;
             border-color: #1d4ed8 !important;
         }
 
+        .fc-button:disabled {
+            opacity: 0.5 !important;
+        }
+
+        /* Day Headers */
+        .fc-day-header {
+            padding: 0.75rem !important;
+            background: #f9fafb !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            font-size: 0.75rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            border: 1px solid #e5e7eb !important;
+        }
+
+        /* Day Cells */
+        .fc-day {
+            border: 1px solid #e5e7eb !important;
+        }
+
+        .fc-day-number {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
         .fc-today {
-            background-color: #eff6ff !important;
+            background: #eff6ff !important;
         }
 
-        /* Daily View Optimizations */
-        .fc-agendaDay-view .fc-time-grid-container {
-            height: auto !important;
+        .fc-today .fc-day-number {
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
         }
 
-        .fc-agendaDay-view .fc-event {
-            margin: 1px 2px;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-
-        .fc-agendaDay-view .fc-event .fc-content {
-            white-space: normal;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 2px 4px;
-        }
-
-        .fc-agendaDay-view .fc-time-grid {
-            min-height: 600px !important;
-        }
-
-        .fc-agendaDay-view .fc-slats tr {
-            height: 40px;
-        }
-
+        /* Events */
         .fc-event {
-            opacity: 0.9;
-            transition: opacity 0.2s, transform 0.2s;
+            border: none !important;
+            border-radius: 0.25rem !important;
+            padding: 2px 6px !important;
+            font-size: 0.8125rem !important;
             cursor: pointer;
+            transition: all 0.15s ease;
+            margin: 1px 2px !important;
         }
 
         .fc-event:hover {
-            opacity: 1;
-            transform: scale(1.02);
-            z-index: 1000 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            opacity: 0.95;
         }
 
-        /* Month view improvements */
-        .fc-day-grid-event {
+        .fc-event .fc-content {
             padding: 2px 4px;
-            margin: 1px;
+        }
+
+        .fc-time {
+            font-weight: 600;
+        }
+
+        /* Day Grid */
+        .fc-day-grid-event {
+            margin: 2px 3px 0;
+            padding: 3px 5px;
+        }
+
+        /* Time Grid (Agenda Day View) */
+        .fc-time-grid .fc-slats td {
+            height: 2.5rem;
+            border-bottom: 1px solid #f3f4f6 !important;
+        }
+
+        .fc-time-grid .fc-slats .fc-minor td {
+            border-top-style: dotted !important;
+        }
+
+        .fc-axis {
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .fc-time-grid-event {
+            border-radius: 0.375rem !important;
+            border-left-width: 3px !important;
+        }
+
+        /* Scrollbar */
+        .fc-scroller::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .fc-scroller::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+
+        .fc-scroller::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+
+        .fc-scroller::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Modal Animations */
+        #appointmentModal.flex {
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #appointmentModal .bg-white {
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            line-height: 1;
         }
     </style>
 @endpush
@@ -205,43 +384,42 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.2/dist/fullcalendar.min.js"></script>
 
     <script>
-        // Auto hide alerts after 3 seconds
+        // Auto hide alerts
         setTimeout(function() {
-            const successAlert = document.getElementById('successAlert');
-            const errorAlert = document.getElementById('errorAlert');
-
-            if (successAlert) {
-                successAlert.style.transition = 'opacity 0.5s';
-                successAlert.style.opacity = '0';
-                setTimeout(() => successAlert.remove(), 500);
-            }
-
-            if (errorAlert) {
-                errorAlert.style.transition = 'opacity 0.5s';
-                errorAlert.style.opacity = '0';
-                setTimeout(() => errorAlert.remove(), 500);
-            }
-        }, 3000);
+            ['successAlert', 'errorAlert'].forEach(id => {
+                const alert = document.getElementById(id);
+                if (alert) {
+                    alert.style.transition = 'opacity 0.3s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                }
+            });
+        }, 4000);
 
         // Modal functions
         function closeModal() {
-            document.getElementById('appointmentModal').classList.add('hidden');
-            document.getElementById('appointmentModal').classList.remove('flex');
+            const modal = document.getElementById('appointmentModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }
 
         function openModal() {
-            document.getElementById('appointmentModal').classList.remove('hidden');
-            document.getElementById('appointmentModal').classList.add('flex');
+            const modal = document.getElementById('appointmentModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
-        // Close modal when clicking outside
+        // Close modal on outside click
         document.getElementById('appointmentModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
         });
 
-        // Initialize FullCalendar
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // FullCalendar initialization
         $(document).ready(function() {
             $('#calendar').fullCalendar({
                 header: {
@@ -252,42 +430,49 @@
                 defaultView: 'month',
                 editable: false,
                 slotDuration: '00:30:00',
-                minTime: '06:00:00',
-                maxTime: '22:00:00',
+                minTime: '07:00:00',
+                maxTime: '20:00:00',
                 height: 'auto',
+                firstDay: 1, // Monday
                 events: @json($appointments ?? []),
+                
                 eventRender: function(event, element) {
-                    element.attr('title', event.description || 'No description');
+                    element.attr('title', event.description || event.notes || 'No description');
+                    element.find('.fc-content').prepend('<i class="fas fa-circle" style="font-size: 6px; margin-right: 4px;"></i>');
                 },
+                
                 eventClick: function(calEvent, jsEvent, view) {
-                    // Populate modal with event data
+                    // Populate modal
                     $('#modalAppointmentId').val(calEvent.id);
                     $('#modalEmployee').text(calEvent.employee || 'Not assigned');
                     $('#modalAppointmentName').text(calEvent.name || 'N/A');
                     $('#modalEmail').text(calEvent.email || 'N/A');
                     $('#modalPhone').text(calEvent.phone || 'N/A');
-                    $('#modalNotes').text(calEvent.description || calEvent.notes || 'N/A');
-                    $('#modalStartTime').text(moment(calEvent.start).format('MMMM D, YYYY h:mm A'));
+                    $('#modalNotes').text(calEvent.notes || calEvent.description || 'No notes provided');
+                    $('#modalStartTime').text(moment(calEvent.start).format('dddd, MMMM D, YYYY [at] h:mm A'));
 
-                    // Get the status from the calendar event
+                    // Status
                     var status = calEvent.status || 'Pending';
                     $('#modalStatusSelect').val(status);
 
-                    // Set status badge
-                    var statusColors = {
-                        'Pending': '#f39c12',
-                        'Confirmed': '#2ecc71',
-                        'Cancelled': '#ff0000',
-                        'Completed': '#008000',
+                    // Status badge with proper styling
+                    var statusConfig = {
+                        'Pending': { bg: '#fef3c7', text: '#92400e', label: 'Pending' },
+                        'Confirmed': { bg: '#d1fae5', text: '#065f46', label: 'Confirmed' },
+                        'Cancelled': { bg: '#fee2e2', text: '#991b1b', label: 'Cancelled' },
+                        'Completed': { bg: '#dbeafe', text: '#1e40af', label: 'Completed' }
                     };
 
-                    var badgeColor = statusColors[status] || '#7f8c8d';
+                    var config = statusConfig[status] || { bg: '#f3f4f6', text: '#374151', label: status };
                     $('#modalStatusBadge').html(
-                        `<span class="px-3 py-1 rounded-full text-white font-semibold" style="background-color: ${badgeColor};">${status}</span>`
+                        `<span class="status-badge" style="background-color: ${config.bg}; color: ${config.text};">${config.label}</span>`
                     );
 
-                    // Show modal
                     openModal();
+                },
+
+                dayClick: function(date, jsEvent, view) {
+                    // Optional: Add behavior when clicking on empty day
                 }
             });
         });
