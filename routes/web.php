@@ -53,6 +53,7 @@ Route::middleware(['web'])->group(function () {
     Route::resource('intents', IntentController::class);
     Route::post('intents/{intent}/sync', [IntentController::class, 'sync'])->name('intents.sync');
     Route::post('intents-import', [IntentController::class, 'import'])->name('intents.import');
+    Route::post('intents/{intent}/mark-solved', [IntentController::class, 'markQuestionSolved'])->name('intents.mark-solved');
     
     // Quick Response routes
     Route::resource('quick-responses', QuickResponseController::class);

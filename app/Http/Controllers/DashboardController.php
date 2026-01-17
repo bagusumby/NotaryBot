@@ -61,8 +61,14 @@ class DashboardController extends Controller
         // Success rate (conversations with positive reviews vs total)
         $successRate = $totalReviews > 0 ? ($positiveReviews / $totalReviews * 100) : 0;
 
-        // Unanswered questions
-        $unansweredQuestions = UnansweredQuestion::count();
+        // Unanswered questions statistics
+        $totalUnansweredQuestions = UnansweredQuestion::count();
+        $unsolvedQuestions = UnansweredQuestion::where('is_solved', false)->count();
+        $solvedQuestions = UnansweredQuestion::where('is_solved', true)->count();
+        $solvedQuestionsThisMonth = UnansweredQuestion::where('is_solved', true)
+            ->whereMonth('solved_at', now()->month)
+            ->whereYear('solved_at', now()->year)
+            ->count();
 
         // Total intents
         $totalIntents = Intent::count();
@@ -92,7 +98,10 @@ class DashboardController extends Controller
             'totalConversations',
             'avgConversationsPerDay',
             'successRate',
-            'unansweredQuestions',
+            'totalUnansweredQuestions',
+            'unsolvedQuestions',
+            'solvedQuestions',
+            'solvedQuestionsThisMonth',
             'totalIntents',
             'recentUsers',
             'recentReviews'

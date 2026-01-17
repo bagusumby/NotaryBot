@@ -13,6 +13,35 @@
             <p class="text-gray-600">Buat quick response baru yang akan muncul sebagai chips di chatbot</p>
         </div>
 
+        <!-- Error Messages -->
+        @if(session('error'))
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                <div>
+                    <h3 class="text-red-900 font-medium">Error</h3>
+                    <p class="text-red-700">{{ session('error') }}</p>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if($errors->any())
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                <div>
+                    <h3 class="text-red-900 font-medium mb-2">Ada kesalahan dalam form:</h3>
+                    <ul class="list-disc list-inside text-red-700">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Saran dari Intent yang Sering Ditanyakan -->
         @if($popularIntents->count() > 0)
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">

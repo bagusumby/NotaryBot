@@ -6,6 +6,7 @@ use App\Models\QuickResponse;
 use App\Models\Intent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class QuickResponseController extends Controller
 {
@@ -37,20 +38,31 @@ class QuickResponseController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'value' => 'required|string|max:255',
-            'type' => 'required|in:welcome,general',
-            'order' => 'required|integer|min:0',
-            'is_active' => 'boolean'
-        ]);
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'value' => 'required|string|max:255',
+                'type' => 'required|in:welcome,general',
+                'order' => 'required|integer|min:0'
+            ]);
 
-        $validated['is_active'] = $request->has('is_active');
+            // Handle checkbox separately
+            $validated['is_active'] = $request->has('is_active');
 
-        QuickResponse::create($validated);
+            QuickResponse::create($validated);
 
-        return redirect()->route('quick-responses.index')
-            ->with('success', 'Quick Response berhasil ditambahkan!');
+            return redirect()->route('quick-responses.index')
+                ->with('success', 'Quick Response berhasil ditambahkan!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Exception $e) {
+            Log::error('Error creating quick response: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function edit(QuickResponse $quickResponse)
@@ -71,10 +83,10 @@ class QuickResponseController extends Controller
             'title' => 'required|string|max:255',
             'value' => 'required|string|max:255',
             'type' => 'required|in:welcome,general',
-            'order' => 'required|integer|min:0',
-            'is_active' => 'boolean'
+            'order' => 'required|integer|min:0'
         ]);
 
+        // Handle checkbox separately
         $validated['is_active'] = $request->has('is_active');
 
         $quickResponse->update($validated);

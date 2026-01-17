@@ -17,6 +17,72 @@
             </a>
         </div>
 
+        <!-- Unsolved Questions Section -->
+        @if($unsolvedQuestions->count() > 0)
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6 mb-6">
+            <div class="flex items-start gap-4">
+                <div class="bg-yellow-100 p-3 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-lightbulb text-yellow-600"></i>
+                        {{ $unsolvedQuestions->count() }} Unsolved Questions
+                    </h3>
+                    <p class="text-gray-600 mb-4">
+                        These questions couldn't be answered by the bot. Create or link an intent to solve them.
+                    </p>
+                    
+                    <div class="space-y-3">
+                        @foreach($unsolvedQuestions as $question)
+                        <div class="bg-white p-4 rounded-lg border {{ $highlightedQuestion && $highlightedQuestion->id == $question->id ? 'border-blue-400 shadow-lg' : 'border-gray-200' }}">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <p class="text-gray-900 font-medium mb-1">{{ $question->question }}</p>
+                                    <div class="flex items-center gap-3 text-sm text-gray-500">
+                                        <span><i class="fas fa-user"></i> {{ $question->chatUser->name ?? 'Guest' }}</span>
+                                        <span><i class="fas fa-clock"></i> {{ $question->created_at->diffForHumans() }}</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    onclick="document.getElementById('question-{{ $question->id }}').classList.toggle('hidden')"
+                                    class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                    Link to Intent
+                                </button>
+                            </div>
+                            
+                            <!-- Link to Intent Form -->
+                            <div id="question-{{ $question->id }}" class="hidden mt-3 pt-3 border-t border-gray-200">
+                                <p class="text-sm text-gray-600 mb-2">Select an intent that solves this question:</p>
+                                <form action="{{ route('intents.mark-solved', '__INTENT_ID__') }}" method="POST" class="flex gap-2">
+                                    @csrf
+                                    <input type="hidden" name="question_id" value="{{ $question->id }}">
+                                    <select name="intent_id" required onchange="this.form.action = this.form.action.replace('__INTENT_ID__', this.value)" 
+                                            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                                        <option value="">Select an intent...</option>
+                                        @foreach($intents as $intent)
+                                            <option value="{{ $intent->id }}">{{ $intent->display_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit" 
+                                            class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition">
+                                        <i class="fas fa-check"></i> Mark Solved
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    
+                    <a href="{{ route('unanswered-questions') }}" 
+                       class="inline-flex items-center gap-2 mt-4 text-blue-600 hover:text-blue-700 font-medium text-sm">
+                        View all unanswered questions <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+
         @if ($intents->count() == 0)
             <div class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 mb-6">
                 <div class="flex items-start">
@@ -76,6 +142,14 @@
                                         <span
                                             class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 mt-1">
                                             Fallback
+                                        </span>
+                                    @endif
+                                    @if (isset($intent->solved_questions_count) && $intent->solved_questions_count > 0)
+                                        <span
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1"
+                                            title="{{ $intent->solved_questions_count }} solved question(s)">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            {{ $intent->solved_questions_count }} Solved
                                         </span>
                                     @endif
                                 </td>

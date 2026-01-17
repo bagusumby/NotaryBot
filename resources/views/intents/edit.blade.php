@@ -40,6 +40,34 @@
                 </div>
             @endif
 
+            <!-- Solved Questions Info -->
+            @if($solvedQuestions->count() > 0)
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-check-circle text-green-600 text-xl mt-0.5"></i>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-green-900 mb-2">
+                            {{ $solvedQuestions->count() }} Question(s) Solved by This Intent
+                        </h3>
+                        <p class="text-sm text-green-700 mb-3">
+                            These questions were marked as solved and their text has been added to training phrases:
+                        </p>
+                        <div class="space-y-2">
+                            @foreach($solvedQuestions as $solvedQ)
+                            <div class="bg-white p-3 rounded border border-green-200">
+                                <p class="text-sm text-gray-900 font-medium">"{{ $solvedQ->question }}"</p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-user"></i> {{ $solvedQ->chatUser->name ?? 'Guest' }} • 
+                                    <i class="fas fa-clock"></i> Solved {{ $solvedQ->solved_at->diffForHumans() }}
+                                </p>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <form action="{{ route('intents.update', $intent) }}" method="POST" class="space-y-6">
                 @csrf
                 @method('PUT')

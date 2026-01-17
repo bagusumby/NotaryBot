@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Intent;
+use App\Models\UnansweredQuestion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Google\Cloud\Dialogflow\V2\Client\IntentsClient;
 use Google\Cloud\Dialogflow\V2\ListIntentsRequest;
 use Google\Cloud\Dialogflow\V2\CreateIntentRequest;
@@ -16,7 +18,6 @@ use Google\Cloud\Dialogflow\V2\Intent\TrainingPhrase\Part;
 use Google\Cloud\Dialogflow\V2\Intent\Message;
 use Google\Cloud\Dialogflow\V2\Intent\Message\Text;
 use Google\Protobuf\FieldMask;
-use Illuminate\Support\Facades\Log;
 
 class IntentController extends Controller
 {
@@ -100,7 +101,28 @@ class IntentController extends Controller
         }
 
         $intents = Intent::orderBy('display_name')->paginate(20);
-        return view('intents.index', compact('intents'));
+        
+        // Add solved questions count to each intent
+        foreach ($intents as $intent) {
+            $intent->solved_questions_count = UnansweredQuestion::where('solved_by_intent_id', $intent->id)
+                ->where('is_solved', true)
+                ->count();
+        }
+        
+        // Get unanswered questions - unsolved ones first
+        $unsolvedQuestions = UnansweredQuestion::with('chatUser')
+            ->where('is_solved', false)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        // Get specific question if question_id is provided
+        $highlightedQuestion = null;
+        if (request()->has('question_id')) {
+            $highlightedQuestion = UnansweredQuestion::find(request('question_id'));
+        }
+        
+        return view('intents.index', compact('intents', 'unsolvedQuestions', 'highlightedQuestion'));
     }
 
     public function create()
@@ -171,7 +193,13 @@ class IntentController extends Controller
 
     public function edit(Intent $intent)
     {
-        return view('intents.edit', compact('intent'));
+        // Get solved questions related to this intent
+        $solvedQuestions = UnansweredQuestion::with('chatUser')
+            ->where('solved_by_intent_id', $intent->id)
+            ->orderBy('solved_at', 'desc')
+            ->get();
+            
+        return view('intents.edit', compact('intent', 'solvedQuestions'));
     }
 
     public function update(Request $request, Intent $intent)
@@ -196,12 +224,44 @@ class IntentController extends Controller
         }
 
         try {
+            // Get old training phrases for comparison
+            $oldPhrases = [];
+            foreach ($intent->training_phrases ?? [] as $phrase) {
+                if (is_array($phrase) && isset($phrase['parts'][0]['text'])) {
+                    $oldPhrases[] = $phrase['parts'][0]['text'];
+                }
+            }
+            
             // Format training phrases
             $trainingPhrases = [];
+            $newPhrases = [];
             if (!empty($validated['training_phrases'])) {
-                $trainingPhrases = array_map(function($phrase) {
-                    return ['parts' => [['text' => $phrase]]];
-                }, array_filter($validated['training_phrases']));
+                foreach (array_filter($validated['training_phrases']) as $phrase) {
+                    $trainingPhrases[] = ['parts' => [['text' => $phrase]]];
+                    $newPhrases[] = $phrase;
+                }
+            }
+            
+            // Find removed phrases
+            $removedPhrases = array_diff($oldPhrases, $newPhrases);
+            
+            // Check if any removed phrase belongs to a solved question
+            if (!empty($removedPhrases)) {
+                foreach ($removedPhrases as $removedPhrase) {
+                    $solvedQuestion = UnansweredQuestion::where('solved_by_intent_id', $intent->id)
+                        ->where('is_solved', true)
+                        ->where('question', $removedPhrase)
+                        ->first();
+                    
+                    if ($solvedQuestion) {
+                        // Mark as unsolved again
+                        $solvedQuestion->update([
+                            'is_solved' => false,
+                            'solved_by_intent_id' => null,
+                            'solved_at' => null
+                        ]);
+                    }
+                }
             }
 
             // Format responses
@@ -428,6 +488,71 @@ class IntentController extends Controller
             $intentsClient->close();
             throw $e;
         }
+    }
+    
+    public function markQuestionSolved(Request $request, Intent $intent)
+    {
+        $validated = $request->validate([
+            'question_id' => 'required|exists:unanswered_questions,id'
+        ]);
+        
+        $question = UnansweredQuestion::find($validated['question_id']);
+        
+        // Add question as training phrase to the intent
+        $trainingPhrases = $intent->training_phrases ?? [];
+        
+        // Check if the question is not already in training phrases
+        $questionAdded = false;
+        $questionText = $question->question;
+        
+        // Check if question already exists (check in the parts array)
+        $alreadyExists = false;
+        foreach ($trainingPhrases as $phrase) {
+            if (is_array($phrase) && isset($phrase['parts'][0]['text'])) {
+                if ($phrase['parts'][0]['text'] === $questionText) {
+                    $alreadyExists = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!$alreadyExists) {
+            // Add in correct Dialogflow format
+            $trainingPhrases[] = [
+                'parts' => [
+                    ['text' => $questionText]
+                ]
+            ];
+            $intent->training_phrases = $trainingPhrases;
+            $intent->save();
+            $questionAdded = true;
+            
+            // Auto-sync to Dialogflow
+            try {
+                $this->syncToDialogflow($intent);
+                $syncMessage = ' and synced to Dialogflow successfully.';
+            } catch (\Exception $e) {
+                Log::error('Auto-sync after solving question failed: ' . $e->getMessage());
+                $syncMessage = ' but sync to Dialogflow failed. Please sync manually.';
+            }
+        } else {
+            $syncMessage = '';
+        }
+        
+        // Mark question as solved
+        $question->update([
+            'is_solved' => true,
+            'solved_by_intent_id' => $intent->id,
+            'solved_at' => now()
+        ]);
+        
+        $message = 'Question marked as solved! ';
+        if ($questionAdded) {
+            $message .= 'Training phrase "' . $question->question . '" has been added to intent: ' . $intent->display_name . $syncMessage;
+        }
+        
+        return redirect()->route('intents.index')
+            ->with('success', $message);
     }
 }
 

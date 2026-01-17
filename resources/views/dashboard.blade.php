@@ -99,7 +99,52 @@
                     <div class="flex-1">
                         <p class="text-2xl text-gray-900 mb-1">{{ number_format($totalIntents) }}</p>
                         <p class="text-gray-600">Total Intents</p>
-                        <p class="text-sm text-gray-500 mt-1">{{ number_format($unansweredQuestions) }} unanswered questions</p>
+                        <p class="text-sm text-gray-500 mt-1">Bot training data</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unanswered Questions Stats - 3 Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Unanswered Questions -->
+            <a href="{{ route('unanswered-questions') }}" class="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-xl shadow-sm border border-yellow-200 hover:shadow-md transition">
+                <div class="flex items-start gap-4">
+                    <div class="bg-yellow-100 p-3 rounded-lg">
+                        <i class="fas fa-question-circle w-6 h-6 text-yellow-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-2xl text-gray-900 mb-1">{{ number_format($totalUnansweredQuestions) }}</p>
+                        <p class="text-gray-600 font-medium">Total Questions</p>
+                        <p class="text-sm text-gray-500 mt-1">Click to view all</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Unsolved Questions -->
+            <a href="{{ route('unanswered-questions') }}" class="bg-gradient-to-br from-red-50 to-pink-50 p-6 rounded-xl shadow-sm border border-red-200 hover:shadow-md transition">
+                <div class="flex items-start gap-4">
+                    <div class="bg-red-100 p-3 rounded-lg">
+                        <i class="fas fa-exclamation-triangle w-6 h-6 text-red-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-2xl text-gray-900 mb-1">{{ number_format($unsolvedQuestions) }}</p>
+                        <p class="text-gray-600 font-medium">Unsolved Questions</p>
+                        <p class="text-sm text-gray-500 mt-1">Needs attention</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Solved Questions -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl shadow-sm border border-green-200">
+                <div class="flex items-start gap-4">
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-check-circle w-6 h-6 text-green-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-2xl text-gray-900 mb-1">{{ number_format($solvedQuestions) }}</p>
+                        <p class="text-gray-600 font-medium">Solved Questions</p>
+                        <p class="text-sm text-gray-500 mt-1">+{{ number_format($solvedQuestionsThisMonth) }} this month</p>
                     </div>
                 </div>
             </div>
