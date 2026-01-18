@@ -178,6 +178,92 @@
             </div>
         </div>
 
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Appointments by Day of Week -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Appointments by Day</h2>
+                        <p class="text-sm text-gray-500 mt-1">Most popular booking days</p>
+                    </div>
+                    <div class="bg-blue-50 p-2 rounded-lg">
+                        <i class="fas fa-calendar-day text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="h-56">
+                    <canvas id="appointmentsByDayChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Appointment Status Distribution -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Appointment Status</h2>
+                        <p class="text-sm text-gray-500 mt-1">Status distribution overview</p>
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-lg">
+                        <i class="fas fa-chart-pie text-purple-600"></i>
+                    </div>
+                </div>
+                <div class="h-56">
+                    <canvas id="appointmentStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Growth and Trends Charts -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+            <!-- User Growth Chart -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">User Growth Trend</h2>
+                        <p class="text-sm text-gray-500 mt-1">New users over the last 6 months</p>
+                    </div>
+                    <div class="bg-blue-50 p-2 rounded-lg">
+                        <i class="fas fa-chart-line text-blue-600"></i>
+                    </div>
+                </div>
+                <div class="h-56">
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Reviews Trend Chart -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Reviews Trend</h2>
+                        <p class="text-sm text-gray-500 mt-1">Positive vs negative reviews comparison</p>
+                    </div>
+                    <div class="bg-green-50 p-2 rounded-lg">
+                        <i class="fas fa-thumbs-up text-green-600"></i>
+                    </div>
+                </div>
+                <div class="h-56">
+                    <canvas id="reviewsTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Unanswered Questions Performance -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Questions Performance</h2>
+                        <p class="text-sm text-gray-500 mt-1">Solved vs unsolved questions tracking</p>
+                    </div>
+                    <div class="bg-yellow-50 p-2 rounded-lg">
+                        <i class="fas fa-question-circle text-yellow-600"></i>
+                    </div>
+                </div>
+                <div class="h-56">
+                    <canvas id="unansweredQuestionsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Recent Activity -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <!-- Recent Users -->
@@ -232,4 +318,387 @@
             </div>
         </div>
     </div>
+
+    <!-- Chart.js Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        // Chart Colors
+        const colors = {
+            blue: 'rgb(59, 130, 246)',
+            green: 'rgb(34, 197, 94)',
+            red: 'rgb(239, 68, 68)',
+            yellow: 'rgb(234, 179, 8)',
+            purple: 'rgb(168, 85, 247)',
+            orange: 'rgb(249, 115, 22)',
+            cyan: 'rgb(6, 182, 212)',
+        };
+
+        // 1. Appointments by Day of Week Chart
+        const appointmentsByDayCtx = document.getElementById('appointmentsByDayChart').getContext('2d');
+        new Chart(appointmentsByDayCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(array_keys($appointmentsByDayFormatted)) !!},
+                datasets: [{
+                    label: 'Appointments',
+                    data: {!! json_encode(array_values($appointmentsByDayFormatted)) !!},
+                    backgroundColor: colors.blue,
+                    borderRadius: 8,
+                    barThickness: 40,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Appointment Status Distribution Chart
+        const appointmentStatusCtx = document.getElementById('appointmentStatusChart').getContext('2d');
+        const statusData = {!! json_encode($appointmentStatusChart) !!};
+        new Chart(appointmentStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData).map(s => s.charAt(0).toUpperCase() + s.slice(1)),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        colors.green,
+                        colors.yellow,
+                        colors.blue,
+                        colors.red,
+                        colors.purple
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 13
+                            },
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. User Growth Chart
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        new Chart(userGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode(array_keys($userGrowthChart)) !!},
+                datasets: [{
+                    label: 'New Users',
+                    data: {!! json_encode(array_values($userGrowthChart)) !!},
+                    borderColor: colors.blue,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: colors.blue,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: {
+                                size: 13
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Reviews Trend Chart
+        const reviewsTrendCtx = document.getElementById('reviewsTrendChart').getContext('2d');
+        new Chart(reviewsTrendCtx, {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($reviewsTrendChart['months']) !!},
+                datasets: [
+                    {
+                        label: 'Positive Reviews',
+                        data: {!! json_encode($reviewsTrendChart['positive']) !!},
+                        borderColor: colors.green,
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: colors.green,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                    },
+                    {
+                        label: 'Negative Reviews',
+                        data: {!! json_encode($reviewsTrendChart['negative']) !!},
+                        borderColor: colors.red,
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: colors.red,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 13
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 5. Unanswered Questions Performance Chart
+        const unansweredQuestionsCtx = document.getElementById('unansweredQuestionsChart').getContext('2d');
+        new Chart(unansweredQuestionsCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($unansweredQuestionsChart['months']) !!},
+                datasets: [
+                    {
+                        label: 'Solved',
+                        data: {!! json_encode($unansweredQuestionsChart['solved']) !!},
+                        backgroundColor: colors.green,
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Unsolved',
+                        data: {!! json_encode($unansweredQuestionsChart['unsolved']) !!},
+                        backgroundColor: colors.red,
+                        borderRadius: 6,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 13
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        stacked: true,
+                        ticks: {
+                            precision: 0,
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 @endsection

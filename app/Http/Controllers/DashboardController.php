@@ -6,8 +6,10 @@ use App\Models\ChatUser;
 use App\Models\Review;
 use App\Models\Intent;
 use App\Models\UnansweredQuestion;
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -85,6 +87,87 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        // Chart Data: Appointments by Day of Week
+        $appointmentsByDay = Appointment::select(
+            DB::raw('DAYOFWEEK(booking_date) as day_number'),
+            DB::raw('count(*) as total')
+        )
+            ->whereNotNull('booking_date')
+            ->groupBy('day_number')
+            ->orderBy('day_number')
+            ->get()
+            ->pluck('total', 'day_number')
+            ->toArray();
+
+        // Convert day numbers to names (1=Sunday, 2=Monday, etc.)
+        $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        $appointmentsByDayFormatted = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $appointmentsByDayFormatted[$dayNames[$i - 1]] = $appointmentsByDay[$i] ?? 0;
+        }
+
+        // Chart Data: User Growth - Last 6 months
+        $userGrowthChart = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $userGrowthChart[$month->format('M Y')] = ChatUser::whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+        }
+
+        // Chart Data: Reviews Trend - Last 6 months
+        $reviewsTrendChart = [
+            'positive' => [],
+            'negative' => [],
+            'months' => []
+        ];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthLabel = $month->format('M Y');
+            $reviewsTrendChart['months'][] = $monthLabel;
+            $reviewsTrendChart['positive'][] = Review::where('rating', 'positive')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+            $reviewsTrendChart['negative'][] = Review::where('rating', 'negative')
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+        }
+
+        // Chart Data: Unanswered Questions Performance - Last 6 months
+        $unansweredQuestionsChart = [
+            'total' => [],
+            'solved' => [],
+            'unsolved' => [],
+            'months' => []
+        ];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthLabel = $month->format('M Y');
+            $unansweredQuestionsChart['months'][] = $monthLabel;
+            
+            $totalQuestions = UnansweredQuestion::whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+            
+            $solvedInMonth = UnansweredQuestion::where('is_solved', true)
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+            
+            $unansweredQuestionsChart['total'][] = $totalQuestions;
+            $unansweredQuestionsChart['solved'][] = $solvedInMonth;
+            $unansweredQuestionsChart['unsolved'][] = $totalQuestions - $solvedInMonth;
+        }
+
+        // Chart Data: Appointment Status Distribution
+        $appointmentStatusChart = Appointment::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->get()
+            ->pluck('total', 'status')
+            ->toArray();
+
         return view('dashboard', compact(
             'totalUsers',
             'usersThisMonth',
@@ -104,7 +187,12 @@ class DashboardController extends Controller
             'solvedQuestionsThisMonth',
             'totalIntents',
             'recentUsers',
-            'recentReviews'
+            'recentReviews',
+            'appointmentsByDayFormatted',
+            'userGrowthChart',
+            'reviewsTrendChart',
+            'unansweredQuestionsChart',
+            'appointmentStatusChart'
         ));
     }
 }
